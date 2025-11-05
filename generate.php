@@ -26,7 +26,8 @@ if (empty(trim($prompt))) {
 
 // IMPORTANT: Replace this with your actual API key
 // Store your API key in environment variable or config file for security
-$api_key = 'YOUR_OPENAI_API_KEY_HERE';
+//$api_key = 'YOUR_OPENAI_API_KEY_HERE';
+$api_key ="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";
 //$api_key = getenv('OPENAI_API_KEY');
 
 // Validate API key
