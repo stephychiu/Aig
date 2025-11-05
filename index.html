@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Image Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    #prompt {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007cba;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #005a87;
+    }
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #result {
+      margin-top: 20px;
+    }
+    #result img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .error {
+      color: red;
+      background-color: #fff5f5;
+      padding: 10px;
+      border-radius: 4px;
+      border: 1px solid #fed7d7;
+    }
+    .loading {
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <h1>AI Image Generator</h1>
+  <input type="text" id="prompt" placeholder="Please enter a description" />
+  <button onclick="generateImage()">Generate</button>
+  <div id="result"></div>
+
+  <script>
+    
+    async function generateImage() {
+      const prompt = document.getElementById('prompt').value.trim();
+      const button = document.querySelector('button');
+      const resultDiv = document.getElementById('result');
+      
+      // Validate input
+      if (!prompt) {
+        resultDiv.innerHTML = '<p class="error">Please enter a description first.</p>';
+        return;
+      }
+      
+      // Disable button and show loading
+      button.disabled = true;
+      button.textContent = 'Generating...';
+      resultDiv.innerHTML = '<p class="loading">Generating image, please wait...</p>';
+
+      
+      try {
+        const response = await fetch("generate.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+          },
+          body: `prompt=${encodeURIComponent(prompt)}`
+        });
+
+        resultDiv.innerHTML = '<p class="loading">2 Generating image, please wait...</p>';
+        const data = await response.json();
+        resultDiv.innerHTML = '<p class="loading">3 Generating image, please wait...</p>';
+        console.log("API Response:", data);
+        resultDiv.innerHTML = '<p class="loading">4 Generating image, please wait...</p>';
+        // Check for API errors
+        if (data.error) {
+          throw new Error(data.error.message || `API Error: ${data.error.type || 'Unknown error'}`);
+        }
+
+        // Check if image data exists
+        if (!data.data || !data.data[0] || !data.data[0].url) {
+          throw new Error("No image data received from API");
+        }
+
+        // Display the generated image
+        resultDiv.innerHTML = `
+          <img src="${data.data[0].url}" alt="Generated image: ${prompt}" />
+          <p><small>Generated from: "${prompt}"</small></p>
+        `;
+
+      } catch (error) {
+        console.error("Error: ", error);
+        resultDiv.innerHTML = `<p class="error">Image generation failed: ${error.message}</p>`;
+      } finally {
+        // Re-enable button
+        button.disabled = false;
+        button.textContent = 'Generate';
+      }
+    } 
+    
+    // Allow Enter key to trigger generation
+    document.getElementById('prompt').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        generateImage();
+      }
+    });
+  </script>
+</body>
+</html>
